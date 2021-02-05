@@ -1,63 +1,69 @@
 function eval() {
-    // Do not use eval!!!
-    return;
+  // Do not use eval!!!
+  return;
 }
 
-const o = {
-    "+" : (a, b) => a + b,
-    "-" : (a, b) => a - b,
-    "*" : (a, b) => a * b,
-    "/" : (a, b) => a / b
-}
+const operation = {
+  '+': (a, b) => a + b,
+  '-': (a, b) => a - b,
+  '*': (a, b) => a * b,
+  '/': (a, b) => a / b,
+};
 
 function calculate(expr) {
-    let e = expr.split(" ");
+  let expression = expr.split(' ');
 
-    function calc(o1, o2){
-        for (let i = 1; i < e.length - 1; i++) {
-            if (e[i] == o1 || e[i] == o2) {
-                e[i] = o[ e[i] ]( +e[i-1], +e[i+1] );
-                e.splice(i-1, 3, e[i]);
-                i--;
-            }
-        }
+  function calc(o1, o2) {
+    for (let i = 1; i < expression.length - 1; i++) {
+      if (expression[i] === o1 || expression[i] === o2) {
+        expression[i] = operation[expression[i]](+expression[i - 1], +expression[i + 1]);
+        expression.splice(i - 1, 3, expression[i]);
+        i--;
+      }
     }
-    calc("*", "/");
-    calc("+", "-");
+  }
 
-    return +e[0];
+  calc('*', '/');
+  calc('+', '-');
+
+  return +expression[0];
 }
 
-function checkForErrors(expr){
-    let checker = expr.split(" ").filter(e => e != "").join("");
+const countChars = (string, symbol) => string.replace(RegExp(`[^${symbol}]`, 'g'), '').length;
 
-    // "(" and ")" quantities are equal
-    if ( checker.replace(/[^(]/g, "").length != checker.replace(/[^)]/g, "").length ) {
-      throw new Error("ExpressionError: Brackets must be paired");
-    }
+function checkForErrors(expr) {
+  const checker = expr
+    .split(' ')
+    .filter((symbol) => symbol.length > 0)
+    .join('');
 
-    // if divide by zero
-    if ( checker.includes("/0") ) {
-        throw new Error("TypeError: Division by zero.");
-    }
+  // numbers of "(" and ")" are equal
+  if (countChars(checker, '(') !== countChars(checker, ')')) {
+    throw new Error('ExpressionError: Brackets must be paired');
+  }
+
+  // if divide by zero
+  if (checker.includes('/0')) {
+    throw new Error('TypeError: Division by zero.');
+  }
 }
 
 function expressionCalculator(expr) {
-    checkForErrors(expr);
+  checkForErrors(expr);
 
-    expr = expr.replace(/\s/g, "").replace(/(\*|\/|\+|\-)/g, " $& ");
+  expr = expr.replace(/\s/g, '').replace(/([*/+-])/g, ' $& ');
 
-    if (expr.match(/\(/g) != null ) {
-        for (let i = expr.match(/\(/g).length; i != 0; i--) {
-            let calculation = expr.match(/(\([0-9\+\/\*\-. ]+\))/g)[0];
-            let expression = calculation.slice( 1, calculation.length-1 );
-            expr = expr.replace(calculation, calculate(expression));
-        }
+  if (expr.match(/\(/g)) {
+    for (let i = expr.match(/\(/g).length; i !== 0; i--) {
+      const calculation = expr.match(/(\([0-9+/*-. ]+\))/g)[0];
+      const expression = calculation.slice(1, calculation.length - 1);
+      expr = expr.replace(calculation, calculate(expression));
     }
-  
-    return calculate(expr);
+  }
+
+  return calculate(expr);
 }
 
 module.exports = {
-    expressionCalculator
-}
+  expressionCalculator,
+};
